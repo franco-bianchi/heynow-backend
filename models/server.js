@@ -92,7 +92,7 @@ class Server {
         const nlp = dock.get('nlp');
         nlp.addCorpus(corpusEn);
         nlp.addCorpus(corpusEs);
-        await nlp.train();
+        // await nlp.train();
         this.nlp = nlp;
     }
 
