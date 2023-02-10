@@ -14,8 +14,11 @@ function getWeatherMessage(data, lang) {
     : `El dia en ${city}, ${country} está ${condition}, con una temperatura de ${celcius} grados Celsius y ${fahrenheit} degrees Fahrenheit`
 }
 
-async function getWeather(lang, lat, long) {
-    const {data} = await axios.get(`https://api.weatherapi.com/v1/current.json?key=${process.env.WEATHER_API_KEY}&q=${lat},${long}&aqi=no&lang=${lang}`);
+async function getWeather(lang, payload) {
+    const {lat = '', long = '', location = ''} = payload;
+    let query = lat && long ? `${lat},${long}` : location;
+    const {data} = await axios.get(`https://api.weatherapi.com/v1/current.json?key=${process.env.WEATHER_API_KEY}&q=${query}&aqi=no&lang=${lang}`);
+    console.log('data', data);
     return getWeatherMessage(data, lang);
 }
 

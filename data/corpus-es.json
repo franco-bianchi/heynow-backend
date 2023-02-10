@@ -718,6 +718,20 @@
         "answers": []
       },
       {
+        "intent": "info.clima.specific",
+        "utterances": [
+          "¿Está frio o calor en Argentina?",
+          "¿Está soleado en Bolivia?, ¿Deberia usar lentes de sol?",
+          "¿Está lloviendo en China?",
+          "¿Debería usar un paraguas si estoy en Brasil?",
+          "¿Cuál es el pronostico del clima en Paris?",
+          "¿Cuál es el pronostico del clima mañana en Ciudad de Mexico?",
+          "¿Cual es la temperatura en Angola?",
+          "¿Como está el clima en Madrid?"
+        ],
+        "answers": []
+      },
+      {
         "intent": "saludos.nicetomeetyou",
         "utterances": [
           "Encantada de conocerte",

@@ -3,10 +3,10 @@ const cors = require('cors');
 const corpusEn = require('../data/corpus-en.json');
 const corpusEs = require('../data/corpus-es.json');
 const { dockStart } = require('@nlpjs/basic');
-
 const { dbConnection } = require('../database/config');
-// const { default: axios } = require('axios');
 const { getWeather } = require('../utils');
+const { Ner } = require('@nlpjs/ner');
+const { currentWeatherIntents, specificWeatherIntents } = require('../utils/constants');
 
 class Server {
     constructor() {
@@ -17,7 +17,8 @@ class Server {
         this.authPath = '/api/auth';
         this.nlpPath = '/api/nlp';
 
-        this.train();
+        this.trainNlp();
+        this.trainNer();
 
         // Conectar a base de datos
         this.connectDb();
@@ -56,13 +57,26 @@ class Server {
                 answer: 'Lo siento, no entiendo lo que quieres decir, recuerda que mi conocimiento depende de mi entrenamiento previo'
             })
 
-            if (result.intent === 'info.weather.current' || result.intent === 'info.clima.current') {
+            if (currentWeatherIntents.includes(result.intent)) {
                 if(!lat || !long){
                     return res.json({
                         answer: 'Lo siento, no entiendo lo que quieres decir, recuerda que mi conocimiento depende de mi entrenamiento previo'
                     })
                 }
-                answer = await getWeather(result.locale, lat, long);
+
+                const payload = {lat, long};
+                answer = await getWeather(result.locale, payload);
+            } else if(specificWeatherIntents.includes(result.intent)) {
+                const processed = await this.ner.process({ text: utterance });
+                const { utteranceText = ''} = processed.entities[0];
+                if(!utteranceText) {
+                    answer = 'Lo siento, no entiendo lo que quieres decir, recuerda que mi conocimiento depende de mi entrenamiento previo'
+                }else {
+                    const payload = {
+                        location: utteranceText
+                    };
+                    answer = await getWeather(result.locale, payload);
+                }
             } else {
                 answer = result.answers[0].answer;
             }
@@ -73,13 +87,20 @@ class Server {
         });
     }
 
-    async train() {
+    async trainNlp() {
         const dock = await dockStart({ use: ['Basic', 'LangEn'] });
         const nlp = dock.get('nlp');
         nlp.addCorpus(corpusEn);
         nlp.addCorpus(corpusEs);
         await nlp.train();
         this.nlp = nlp;
+    }
+
+    async trainNer() {
+        const ner = new Ner();
+        ner.addAfterLastCondition('en', 'in', 'in');
+        ner.addAfterLastCondition('en', 'en', 'en');
+        this.ner = ner;
     }
 
     listen() {
